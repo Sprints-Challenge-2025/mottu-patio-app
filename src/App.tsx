@@ -1,12 +1,12 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-import { LoginScreen } from "./src/screens/LoginScreen";
-import { RegisterScreen } from "./src/screens/RegisterScreen";
-import { HomeScreen } from "./src/screens/HomeScreen";
-import { MotoDetailsScreen } from "./src/screens/MotoDetailScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { RegisterScreen } from "./screens/RegisterScreen";
+import { HomeScreen } from "./screens/HomeScreen";
+import { MotoDetailsScreen } from "./screens/MotoDetailScreen";
 import { ActivityIndicator, View } from "react-native";
 
 const Stack = createNativeStackNavigator();
