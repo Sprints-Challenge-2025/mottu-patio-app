@@ -1,47 +1,50 @@
 import React, { useEffect, useState } from "react";
-import { View, FlatList, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
-import { useAuth } from "../contexts/AuthContext";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import api from "../api/api";
 import { Moto } from "../types";
 
-export function HomeScreen({ navigation }: any) {
-  const { token } = useAuth();
-  const [motos, setMotos] = useState<Moto[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function HomeScreen({ navigation }: any) {
+const [motos, setMotos] = useState<Moto[]>([]); // ✅ use tipagem correta
 
-  useEffect(() => {
-    async function loadMotos() {
-      try {
-        const res = await api.get("/motos", { headers: { Authorization: `Bearer ${token}` } });
-        setMotos(res.data);
-      } catch {
-        alert("Erro ao carregar motos");
-      }
-      setLoading(false);
-    }
-    loadMotos();
-  }, [token]);
-
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
-
-  return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <FlatList
-        data={motos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item} onPress={() => navigation.navigate("MotoDetails", { id: item.id })}>
-            <Text style={styles.placa}>{item.placa}</Text>
-            <Text>Status: {item.status}</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<Text>Nenhuma moto encontrada</Text>}
-      />
-    </View>
-  );
+useEffect(() => {
+const fetchMotos = async () => {
+try {
+const res = await api.get<Moto[]>("/motos"); // opcional: ajuda o TS a entender a resposta
+setMotos(res.data);
+} catch (err) {
+console.error("Erro ao buscar motos", err);
 }
+};
 
+fetchMotos();
+}, []);
+
+const renderItem = ({ item }: { item: Moto }) => (
+<TouchableOpacity
+style={styles.card}
+onPress={() => navigation.navigate("MotoDetails", { moto: item })}
+>
+<Text style={styles.title}>{item.placa} - {item.status}</Text>
+</TouchableOpacity>
+);
+
+return (
+<View style={styles.container}>
+<FlatList
+data={motos}
+keyExtractor={(item) => String(item.id)}
+renderItem={renderItem}
+/>
+</View>
+);
+}
 const styles = StyleSheet.create({
-  item: { padding: 15, borderBottomWidth: 1, borderBottomColor: "#ddd" },
-  placa: { fontWeight: "bold", fontSize: 16 },
-});
+    container: { flex: 1, padding: 16 },
+    card: {
+      padding: 16,
+      backgroundColor: "#f2f2f2",
+      marginBottom: 12,
+      borderRadius: 8
+    },
+    title: { fontSize: 16, fontWeight: "bold" }
+  });

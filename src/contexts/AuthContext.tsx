@@ -1,43 +1,33 @@
-import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import api from "../api/api";
 
-type AuthContextType = {
-  token: string | null;
-  setToken: (token: string | null) => void;
-  loading: boolean;
-};
+interface AuthContextType {
+  login: (email: string, senha: string) => Promise<void>;
+  logout: () => void;
+  user: any;
+}
 
-const AuthContext = createContext<AuthContextType>({
-  token: null,
-  setToken: () => {},
-  loading: true,
-});
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setTokenState] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    async function loadToken() {
-      const storedToken = await AsyncStorage.getItem("token");
-      if (storedToken) {
-        setTokenState(storedToken);
-      }
-      setLoading(false);
-    }
-    loadToken();
-  }, []);
-
-  const setToken = async (newToken: string | null) => {
-    setTokenState(newToken);
-    if (newToken) {
-      await AsyncStorage.setItem("token", newToken);
-    } else {
-      await AsyncStorage.removeItem("token");
-    }
+  const login = async (email: string, senha: string) => {
+    const res = await api.post("/auth/login", { email, senha });
+    const usuarioLogado = res.data;
+    setUser(usuarioLogado);
+    // Aqui você pode salvar token com AsyncStorage se desejar
   };
 
-  return <AuthContext.Provider value={{ token, setToken, loading }}>{children}</AuthContext.Provider>;
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ login, logout, user }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

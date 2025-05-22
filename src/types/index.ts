@@ -1,5 +1,5 @@
 export type Moto = {
-  id: string;
+  id: number;
   os: string;
   servico: string;
   status: string;

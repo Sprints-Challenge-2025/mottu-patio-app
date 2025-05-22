@@ -1,47 +1,41 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, ActivityIndicator } from "react-native";
+import { View, TextInput, Button, Alert, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
-import api from "../api/api";
 
-export function LoginScreen({ navigation }: any) {
+export default function LoginScreen({ navigation }: any) {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { setToken } = useAuth();
 
-  async function handleLogin() {
-    setLoading(true);
-    setError("");
+  const handleLogin = async () => {
     try {
-      const res = await api.post("/login", { email, senha });
-      if (res.data.token) {
-        setToken(res.data.token);
-        navigation.replace("Home");
-      } else {
-        setError("Erro ao logar");
-      }
-    } catch {
-      setError("Credenciais inválidas");
+      await login(email, senha);
+      navigation.replace("Home");
+    } catch (error: any) {
+      Alert.alert("Erro", error.response?.data?.mensagem || "Erro ao fazer login");
     }
-    setLoading(false);
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <TextInput style={styles.input} placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry />
-      {!!error && <Text style={styles.error}>{error}</Text>}
-      {loading ? <ActivityIndicator /> : <Button title="Entrar" onPress={handleLogin} />}
-      <Button title="Cadastrar" onPress={() => navigation.navigate("Register")} />
+      <Text style={styles.appTitle}>MottuSense</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry style={styles.input} />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
+      </TouchableOpacity>
+      <Text onPress={() => navigation.navigate("Register")} style={styles.linkText}>
+        Não tem conta? Cadastre-se
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 20 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 5, marginBottom: 15, paddingHorizontal: 10, height: 40 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
-  error: { color: "red", marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 12 },
+  linkText: { marginTop: 16, textAlign: "center", color: "#176419FF" },
+  button: {backgroundColor: "#29b12c",borderRadius: 8, padding: 12 },
+  buttonText: {color: "#ffff", textAlign: "center"},
+  appTitle: {color: "#29b12c", textAlign: "center", padding: 8, fontSize: 26, fontWeight: "bold"}
 });
