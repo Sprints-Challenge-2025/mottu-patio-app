@@ -1,20 +1,38 @@
-import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState } from "react";
 import { View, TextInput, Button, Alert, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginScreen({ navigation }: any) {
-  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
+  useEffect(() => {
+    const verificarLogin = async () => {
+      const logado = await AsyncStorage.getItem("logado");
+      if (logado === "true") {
+        navigation.replace("Home");
+      }
+    };
+  
+    verificarLogin();
+  }, []);
+  
+
   const handleLogin = async () => {
-    try {
-      await login(email, senha);
-      navigation.replace("Home");
-    } catch (error: any) {
-      Alert.alert("Erro", error.response?.data?.mensagem || "Erro ao fazer login");
+    const storedUser = await AsyncStorage.getItem("usuario");
+  
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      if (user.email === email && user.senha === senha) {
+        await AsyncStorage.setItem("logado", "true");
+        navigation.replace("Home");
+        return;
+      }
     }
+  
+    Alert.alert("Erro", "Email ou senha incorretos.");
   };
+  
 
   return (
     <View style={styles.container}>
