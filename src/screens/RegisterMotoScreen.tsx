@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-nativ
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Moto } from "../types";
 
-export default function CadastrarMotoScreen({ navigation }: any) {
+export default function RegisterMotoScreen({ navigation }: any) {
   const [placa, setPlaca] = useState("");
   const [status, setStatus] = useState("");
   const [servico, setServico] = useState("");
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   botao: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#2DAB26FF",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
