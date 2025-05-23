@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  TextInput,
 } from "react-native";
 import { Moto } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -91,7 +90,9 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.bemVindo}>Olá, {nomeUsuario}!</Text>
-      <RegisterMotoScreen/>
+      <TouchableOpacity style={styles.cadMoto} onPress={() => navigation.navigate("RegisterMoto")}>
+        <Text>Cadastrar Moto</Text>
+      </TouchableOpacity>
       <FlatList
         data={motos}
         keyExtractor={(item) => String(item.id)}
@@ -156,6 +157,17 @@ const styles = StyleSheet.create({
   textoSair: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 18,
   },
+  cadMoto: {
+    backgroundColor: "#21D445FF",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 16,
+    fontSize: 18,
+    textAlign: "center",
+    color: "#ffff",
+    fontWeight: "bold",
+},
 });
