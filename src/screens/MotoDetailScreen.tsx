@@ -8,11 +8,31 @@ export default function MotoDetailsScreen({ route, navigation }: any) {
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Detalhes da Moto</Text>
-      <Text style={styles.item}>Placa: {moto.placa}</Text>
-      <Text style={styles.item}>Status: {moto.status}</Text>
-      <Text style={styles.item}>OS: {moto.os}</Text>
-      <Text style={styles.item}>Serviço: {moto.servico}</Text>
-      <Text style={styles.item}>Motor: {moto.motor}</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Placa:</Text>
+        <Text style={styles.valor}>{moto.placa}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Status:</Text>
+        <Text style={styles.valor}>{moto.status}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>OS:</Text>
+        <Text style={styles.valor}>{moto.os}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Serviço:</Text>
+        <Text style={styles.valor}>{moto.servico}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Motor:</Text>
+        <Text style={styles.valor}>{moto.motor}</Text>
+      </View>
 
       <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
         <Text style={styles.textoVoltar}>Voltar</Text>
@@ -25,16 +45,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: "#1C1C1C",
   },
   titulo: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
+    marginTop: 50,
+    color: "#fff",
   },
-  item: {
-    fontSize: 18,
-    marginBottom: 10,
+  card: {
+    backgroundColor: "#f2f2f2",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  valor: {
+    fontSize: 16,
+    color: "#555",
+    marginTop: 4,
   },
   botaoVoltar: {
     marginTop: 30,
