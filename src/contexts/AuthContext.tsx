@@ -1,30 +1,59 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import api from "../api/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface Usuario {
+  nome: string;
+  email: string;
+  senha: string;
+}
 
 interface AuthContextType {
   login: (email: string, senha: string) => Promise<void>;
+  register: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => void;
-  user: any;
+  user: Usuario | null;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Usuario | null>(null);
 
   const login = async (email: string, senha: string) => {
-    const res = await api.post("/auth/login", { email, senha });
-    const usuarioLogado = res.data;
-    setUser(usuarioLogado);
-    // Aqui você pode salvar token com AsyncStorage se desejar
+    const storedUser = await AsyncStorage.getItem("usuario");
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.email === email && parsedUser.senha === senha) {
+        await AsyncStorage.setItem("logado", "true");
+        setUser(parsedUser);
+        return;
+      }
+    }
+
+    throw new Error("Credenciais inválidas");
   };
 
-  const logout = () => {
+  const register = async (nome: string, email: string, senha: string) => {
+    const existingUser = await AsyncStorage.getItem("usuario");
+    if (existingUser) {
+      const user = JSON.parse(existingUser);
+      if (user.email === email) {
+        throw new Error("Este email já está cadastrado.");
+      }
+    }
+
+    const newUser = { nome, email, senha };
+    await AsyncStorage.setItem("usuario", JSON.stringify(newUser));
+  };
+
+  const logout = async () => {
     setUser(null);
+    await AsyncStorage.removeItem("logado");
   };
 
   return (
-    <AuthContext.Provider value={{ login, logout, user }}>
+    <AuthContext.Provider value={{ login, register, logout, user }}>
       {children}
     </AuthContext.Provider>
   );
