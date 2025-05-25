@@ -2,6 +2,11 @@
 
 Aplicativo mobile desenvolvido com **React Native (Expo)** e **TypeScript** para controle e supervisão de motos em um pátio de empresa. O app permite autenticação de usuários, registro de motos, visualização de detalhes e gerenciamento de cadastro.
 
+### 🚀 Equipe
+- Gabriela Gomes - rm556941
+- Emily Maria - rm556941
+- Felipe de Santana - rm558916
+
 ### 📱 Funcionalidades
 
 - Login e autenticação de usuários
