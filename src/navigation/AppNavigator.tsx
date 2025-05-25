@@ -12,7 +12,7 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName="Login"
       screenOptions={{
         headerTitle: "MottuSense",
         headerTintColor: "#21D445FF",
