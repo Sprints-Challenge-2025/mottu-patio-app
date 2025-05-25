@@ -1,4 +1,4 @@
-[![Typing SVG](https://readme-typing-svg.herokuapp.com/?color=3CB371&size=35&center=true&vCenter=true&width=1000&lines=+Oi!+eu+sou+a+Gabriela,+seja+Bem+vindo+ao+meu+Github+)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.herokuapp.com/?color=3CB371&size=35&center=true&vCenter=true&width=1000&lines=+MottuSense+App+-+Challenge+Fiap+2025+)](https://git.io/typing-svg)
 
 Aplicativo mobile desenvolvido com **React Native (Expo)** e **TypeScript** para controle e supervisão de motos em um pátio de empresa. O app permite autenticação de usuários, registro de motos, visualização de detalhes e gerenciamento de cadastro.
 
