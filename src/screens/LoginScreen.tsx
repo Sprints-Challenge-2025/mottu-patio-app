@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   TextInput,
@@ -6,145 +6,83 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }: any) {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
-  useEffect(() => {
-    const verificarLogin = async () => {
-      const logado = await AsyncStorage.getItem("logado");
-      if (logado === "true") {
-        navigation.replace("Home");
-      }
-    };
-    verificarLogin();
-  }, []);
-
-  const validarCPF = (cpf: string): boolean => {
-    const cleaned = cpf.replace(/[^\d]+/g, "");
-    if (cleaned.length !== 11 || /^(\d)\1+$/.test(cleaned)) return false;
-
-    let sum = 0;
-    for (let i = 0; i < 9; i++) sum += parseInt(cleaned.charAt(i)) * (10 - i);
-    let check1 = (sum * 10) % 11;
-    if (check1 === 10 || check1 === 11) check1 = 0;
-    if (check1 !== parseInt(cleaned.charAt(9))) return false;
-
-    sum = 0;
-    for (let i = 0; i < 10; i++) sum += parseInt(cleaned.charAt(i)) * (11 - i);
-    let check2 = (sum * 10) % 11;
-    if (check2 === 10 || check2 === 11) check2 = 0;
-    return check2 === parseInt(cleaned.charAt(10));
+  const validarCPF = (cpfRaw: string) => {
+    const cleaned = cpfRaw.replace(/[^\d]+/g, "");
+    return cleaned.length === 11;
   };
 
   const handleLogin = async () => {
-    if (!cpf || !senha) {
-      Alert.alert("Erro", "Preencha todos os campos.");
-      return;
-    }
-
-    const cpfLimpo = cpf.replace(/[^\d]/g, "");
-
+    const cpfLimpo = cpf.replace(/[^\d]+/g, "");
     if (!validarCPF(cpfLimpo)) {
-      Alert.alert("Erro", "CPF inválido.");
+      Alert.alert("CPF inválido", "Informe um CPF válido com 11 dígitos.");
       return;
     }
-
-    if (senha.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres.");
+    if (!senha || senha.length < 6) {
+      Alert.alert("Senha inválida", "A senha deve ter pelo menos 6 caracteres.");
       return;
     }
-
     try {
       await login(cpfLimpo, senha);
       navigation.replace("Home");
-    } catch (error: any) {
-      console.error("Erro no login:", error);
-      Alert.alert("Erro", error.message || "CPF ou senha incorretos.");
+    } catch (err: any) {
+      Alert.alert("Erro de autenticação", err.message || "CPF ou senha incorretos.");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.appTitle}>MottuSense</Text>
+      <Text style={styles.title}>Entrar</Text>
+
       <TextInput
         placeholder="CPF"
         value={cpf}
         onChangeText={setCpf}
-        keyboardType="numeric"
         style={styles.input}
-        placeholderTextColor="#888"
+        keyboardType="numeric"
       />
       <TextInput
         placeholder="Senha"
         value={senha}
         onChangeText={setSenha}
-        secureTextEntry
         style={styles.input}
-        placeholderTextColor="#888"
+        secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator /> : <Text style={styles.buttonText}>Entrar</Text>}
       </TouchableOpacity>
-      <Text
-        onPress={() => navigation.navigate("Register")}
-        style={styles.linkText}
-      >
-        Não tem conta? Cadastre-se
-      </Text>
-      <Text
-        onPress={() => navigation.navigate("Inicial")}
-        style={styles.linkText}
-      >
-        Voltar para o início
-      </Text>
+
+      <TouchableOpacity onPress={() => navigation.navigate("Register")} style={{ marginTop: 12 }}>
+        <Text style={{ color: "#21D445FF" }}>Ainda não tem conta? Cadastre-se</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "#1C1C1C",
-  },
+  container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#fff" },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
+    borderColor: "#ddd",
     padding: 12,
-    marginBottom: 12,
-    color: "#ccc",
-    fontSize: 16,
+    marginBottom: 10,
+    borderRadius: 8,
   },
   button: {
-    backgroundColor: "#29b12c",
+    backgroundColor: "#21D445FF",
+    padding: 14,
     borderRadius: 8,
-    padding: 12,
+    alignItems: "center",
   },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  linkText: {
-    marginTop: 16,
-    textAlign: "center",
-    color: "#228B22",
-    fontSize: 17,
-  },
-  appTitle: {
-    color: "#29b12c",
-    textAlign: "center",
-    padding: 8,
-    fontSize: 28,
-    fontWeight: "bold",
-  },
+  buttonText: { color: "#fff", fontWeight: "bold" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 16, textAlign: "center" },
 });
