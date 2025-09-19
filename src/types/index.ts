@@ -1,9 +1,9 @@
-export type Moto = {
-  id: number;
-  os: string;
-  servico: string;
-  status: string;
-  foto?: string;
+export interface Moto {
+  id?: string | number;
   placa: string;
-  motor: string;
-};
+  status: string;
+  servico?: string;
+  os?: string;
+  motor?: string;
+  [key: string]: any;
+}
