@@ -1,119 +1,117 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiPost } from "../services/api";
+import { Alert } from "react-native";
 
 interface Usuario {
+  id?: string;
   nome: string;
   cpf: string;
-  senha: string;
 }
 
 interface AuthContextType {
   user: Usuario | null;
+  loading: boolean;
   login: (cpf: string, senha: string) => Promise<void>;
   register: (nome: string, cpf: string, senha: string) => Promise<void>;
   logout: () => Promise<void>;
+  restoreToken: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const validarCPF = (cpf: string): boolean => {
-    cpf = cpf.replace(/[^\d]+/g, '');
-    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  useEffect(() => {
+    restoreToken();
+  }, []);
 
-    let soma = 0;
-    for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
-    let resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(9))) return false;
-
-    soma = 0;
-    for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    return resto === parseInt(cpf.charAt(10));
-  };
-
-  const senhaForte = (senha: string): boolean => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{8,}$/;
-    return regex.test(senha);
-  };
-
-  const register = async (nome: string, cpf: string, senha: string) => {
-    const cleanedCpf = cpf.replace(/[^\d]+/g, "");
-
-    if (!validarCPF(cleanedCpf)) {
-      throw new Error("CPF inválido");
-    }
-
-    if (!senhaForte(senha)) {
-      throw new Error("A senha deve ter pelo menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos.");
-    }
-
+  const restoreToken = async () => {
+    setLoading(true);
     try {
-      const usersJSON = await AsyncStorage.getItem("users");
-      const users: Usuario[] = usersJSON ? JSON.parse(usersJSON) : [];
-
-      const cpfExiste = users.some((u) => u.cpf === cleanedCpf);
-      if (cpfExiste) {
-        throw new Error("Já existe um usuário com esse CPF.");
+      const token = await AsyncStorage.getItem("token");
+      const usuarioStr = await AsyncStorage.getItem("usuario");
+      if (token && usuarioStr) {
+        setUser(JSON.parse(usuarioStr));
       }
-
-      const novoUsuario: Usuario = { nome, cpf: cleanedCpf, senha };
-      const novosUsuarios = [...users, novoUsuario];
-      await AsyncStorage.setItem("users", JSON.stringify(novosUsuarios));
-      await AsyncStorage.setItem("token", "mock-token");
-      await AsyncStorage.setItem("logado", "true");
-      await AsyncStorage.setItem("usuario", JSON.stringify(novoUsuario));
-      setUser(novoUsuario);
-    } catch (error: any) {
-      throw new Error(error.message || "Erro ao registrar usuário");
+    } catch (err) {
+      console.error("Erro restaurando token:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const login = async (cpf: string, senha: string) => {
+    setLoading(true);
     try {
-      const cleanedCpf = cpf.replace(/[^\d]+/g, "");
-      const usersJSON = await AsyncStorage.getItem("users");
-      const users: Usuario[] = usersJSON ? JSON.parse(usersJSON) : [];
+      const payload = { cpf, senha };
+      // espera que o backend retorne { token: '...', usuario: { id, nome, cpf } }
+      const data = await apiPost("/auth/login", payload);
+      if (!data || !data.token) throw new Error("Resposta inválida do servidor.");
+      await AsyncStorage.setItem("token", data.token);
+      await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
+      setUser(data.usuario);
+    } catch (err: any) {
+      console.error("Login erro:", err);
+      throw new Error(err.message || "Erro ao autenticar.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      console.log("Tentando login com CPF:", cleanedCpf, "Senha:", senha);
-      console.log("Usuários cadastrados:", users);
-
-      const usuario = users.find((u) => u.cpf === cleanedCpf && u.senha === senha);
-      if (!usuario) {
-        throw new Error("CPF ou senha inválidos");
+  const register = async (nome: string, cpf: string, senha: string) => {
+    setLoading(true);
+    try {
+      // espera que /users crie o usuário e retorne o usuário criado
+      const data = await apiPost("/users", { nome, cpf, senha });
+      // opcionalmente fazer login automático se backend retornar token:
+      if (data.token) {
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
+        setUser(data.usuario);
+      } else {
+        // salvar usuário localmente para experiência offline mínima
+        await AsyncStorage.setItem("usuario", JSON.stringify(data));
+        setUser(data);
       }
-
-      await AsyncStorage.setItem("token", "mock-token");
-      await AsyncStorage.setItem("logado", "true");
-      await AsyncStorage.setItem("usuario", JSON.stringify(usuario));
-      setUser(usuario);
-    } catch (error: any) {
-      throw new Error(error.message || "Erro ao fazer login");
+    } catch (err: any) {
+      console.error("Register erro:", err);
+      throw new Error(err.message || "Erro ao registrar.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("logado");
-    await AsyncStorage.removeItem("usuario");
-    setUser(null);
+    setLoading(true);
+    try {
+      // tentar avisar backend (opcional). Ignorar falhas.
+      try {
+        await apiPost("/auth/logout", {});
+      } catch (e) {
+        // sem problemas
+      }
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("usuario");
+      setUser(null);
+    } catch (err) {
+      Alert.alert("Erro", "Não foi possível deslogar corretamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, restoreToken }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
-  }
-  return context;
+export const useAuth = (): AuthContextType => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  return ctx;
 };
