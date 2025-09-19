@@ -6,174 +6,93 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterScreen({ navigation }: any) {
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const { register, loading } = useAuth();
 
-  const senhaForte = (senha: string): boolean => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{8,}$/;
-    return regex.test(senha);
+  const validarCPF = (cpfRaw: string) => {
+    const cleaned = cpfRaw.replace(/[^\d]+/g, "");
+    if (cleaned.length !== 11 || /^(\d)\1+$/.test(cleaned)) return false;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(cleaned.charAt(i)) * (10 - i);
+    let check1 = (sum * 10) % 11;
+    if (check1 === 10 || check1 === 11) check1 = 0;
+    if (check1 !== parseInt(cleaned.charAt(9))) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(cleaned.charAt(i)) * (11 - i);
+    let check2 = (sum * 10) % 11;
+    if (check2 === 10 || check2 === 11) check2 = 0;
+    if (check2 !== parseInt(cleaned.charAt(10))) return false;
+    return true;
   };
 
-  const validarCPF = (cpf: string): boolean => {
-    cpf = cpf.replace(/[^\d]/g, "");
-    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-
-    const calc = (x: number) =>
-      cpf
-        .split("")
-        .slice(0, x)
-        .reduce((s, v, i) => s + parseInt(v) * (x + 1 - i), 0);
-
-    const dig1 = (calc(9) * 10) % 11 % 10;
-    const dig2 = (calc(10) * 10) % 11 % 10;
-
-    return dig1 === +cpf[9] && dig2 === +cpf[10];
+  const validarSenhaForte = (s: string) => {
+    return s.length >= 8 && /[A-Z]/.test(s) && /[a-z]/.test(s) && /\d/.test(s) && /[^A-Za-z0-9]/.test(s);
   };
 
   const handleRegister = async () => {
-    if (!nome || !cpf || !senha || !confirmarSenha) {
-      Alert.alert("Erro", "Preencha todos os campos.");
+    if (!nome || nome.length < 2) {
+      Alert.alert("Nome inválido", "Informe um nome válido.");
       return;
     }
-
     if (!validarCPF(cpf)) {
-      Alert.alert("Erro", "CPF inválido.");
+      Alert.alert("CPF inválido", "Informe um CPF válido.");
       return;
     }
-
-    if (senha !== confirmarSenha) {
-      Alert.alert("Erro", "As senhas não coincidem.");
-      return;
-    }
-
-    if (!senhaForte(senha)) {
+    if (!validarSenhaForte(senha)) {
       Alert.alert(
-        "Erro",
+        "Senha fraca",
         "A senha deve ter pelo menos 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos."
       );
       return;
     }
+    if (senha !== confirmarSenha) {
+      Alert.alert("Confirmação", "As senhas não coincidem.");
+      return;
+    }
 
     try {
-      const usuario = { nome, cpf, senha };
-      await AsyncStorage.setItem("usuario", JSON.stringify(usuario));
-
+      await register(nome, cpf.replace(/[^\d]+/g, ""), senha);
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
       navigation.replace("Home");
-    } catch (err) {
-      console.error("Erro ao salvar usuário:", err);
-      Alert.alert("Erro", "Não foi possível salvar o usuário.");
+    } catch (err: any) {
+      Alert.alert("Erro", err.message || "Não foi possível cadastrar.");
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.cadTitle}>
-        Bem vindo a <Text style={styles.destaqTitle}>MottuSense!</Text>
-      </Text>
+      <Text style={styles.title}>Criar Conta</Text>
 
+      <TextInput placeholder="Nome" value={nome} onChangeText={setNome} style={styles.input} />
+      <TextInput placeholder="CPF" value={cpf} onChangeText={setCpf} style={styles.input} keyboardType="numeric" />
+      <TextInput placeholder="Senha" value={senha} onChangeText={setSenha} style={styles.input} secureTextEntry />
       <TextInput
-        placeholder="Nome"
-        value={nome}
-        onChangeText={setNome}
-        style={styles.input}
-        placeholderTextColor="#888"
-      />
-
-      <TextInput
-        placeholder="CPF"
-        value={cpf}
-        onChangeText={setCpf}
-        keyboardType="numeric"
-        style={styles.input}
-        placeholderTextColor="#888"
-      />
-
-      <TextInput
-        placeholder="Senha"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-        style={styles.input}
-        placeholderTextColor="#888"
-      />
-
-      <Text style={styles.passwordHint}>
-        A senha deve conter:
-        {"\n"}• 8+ caracteres
-        {"\n"}• Letras maiúsculas e minúsculas
-        {"\n"}• Números
-        {"\n"}• Caracteres especiais (!@#$%)
-      </Text>
-
-      <TextInput
-        placeholder="Confirmar senha"
+        placeholder="Confirmar Senha"
         value={confirmarSenha}
         onChangeText={setConfirmarSenha}
-        secureTextEntry
         style={styles.input}
-        placeholderTextColor="#888"
+        secureTextEntry
       />
 
-      <TouchableOpacity onPress={handleRegister} style={styles.cadButton}>
-        <Text style={styles.cadText}>Cadastrar</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.linkText}>Voltar para o login</Text>
+      <TouchableOpacity onPress={handleRegister} style={styles.button} disabled={loading}>
+        {loading ? <ActivityIndicator /> : <Text style={styles.buttonText}>Cadastrar</Text>}
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#1C1C1C" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    color: "#ccc",
-    fontSize: 16,
-  },
-  linkText: {
-    marginTop: 16,
-    textAlign: "center",
-    color: "#176419FF",
-    fontSize: 17,
-  },
-  cadButton: {
-    backgroundColor: "#29b12c",
-    borderRadius: 8,
-    padding: 12,
-  },
-  cadText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  cadTitle: {
-    color: "#fff",
-    textAlign: "left",
-    padding: 8,
-    fontSize: 27,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  destaqTitle: {
-    color: "#29b12c",
-  },
-  passwordHint: {
-    color: "#aaa",
-    fontSize: 16,
-    marginBottom: 12,
-  },
+  container: { flex: 1, padding: 20, backgroundColor: "#fff", justifyContent: "center" },
+  input: { borderWidth: 1, borderColor: "#ddd", padding: 12, marginBottom: 10, borderRadius: 8 },
+  button: { backgroundColor: "#21D445FF", padding: 14, borderRadius: 8, alignItems: "center" },
+  buttonText: { color: "#fff", fontWeight: "bold" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 16, textAlign: "center" },
 });
