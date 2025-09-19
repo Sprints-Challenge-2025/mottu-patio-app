@@ -27,11 +27,11 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
 
 // -------- Métodos CRUD exemplo --------
 
-export async function getMotos(token?: string | null) {
+export async function apiGet(token?: string | null) {
   return apiFetch("/motos", { method: "GET", token });
 }
 
-export async function createMoto(data: any, token?: string | null) {
+export async function apiPost(data: any, token?: string | null) {
   return apiFetch("/motos", {
     method: "POST",
     body: JSON.stringify(data),
@@ -39,7 +39,7 @@ export async function createMoto(data: any, token?: string | null) {
   });
 }
 
-export async function updateMoto(id: number, data: any, token?: string | null) {
+export async function apiPut(id: number, data: any, token?: string | null) {
   return apiFetch(`/motos/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -47,6 +47,6 @@ export async function updateMoto(id: number, data: any, token?: string | null) {
   });
 }
 
-export async function deleteMoto(id: number, token?: string | null) {
+export async function apiDelete(id: number, token?: string | null) {
   return apiFetch(`/motos/${id}`, { method: "DELETE", token });
 }
