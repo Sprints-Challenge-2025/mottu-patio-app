@@ -1,182 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Moto } from "../types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiGet, apiDelete } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function HomeScreen({ navigation }: any) {
   const [motos, setMotos] = useState<Moto[]>([]);
-  const [nomeUsuario, setNomeUsuario] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem("logado");
-    navigation.replace("Login");
-  };
+  const fetchMotos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await apiGet("/motos");
+      setMotos(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      Alert.alert("Erro", err.message || "Não foi possível carregar motos.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const buscarUsuario = async () => {
-      try {
-        const usuarioSalvo = await AsyncStorage.getItem("usuario");
-        if (usuarioSalvo) {
-          const user = JSON.parse(usuarioSalvo);
-          setNomeUsuario(user.nome);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar usuário:", error);
-      }
-    };
-
-    const fetchMotos = async () => {
-      try {
-        const storedMotos = await AsyncStorage.getItem("motos");
-        if (storedMotos) {
-          setMotos(JSON.parse(storedMotos));
-        }
-      } catch (err) {
-        console.error("Erro ao buscar motos localmente", err);
-      }
-    };
-
-    buscarUsuario();
+    const unsub = navigation.addListener("focus", () => {
+      fetchMotos();
+    });
     fetchMotos();
-  }, []);
+    return unsub;
+  }, [navigation, fetchMotos]);
+
+  const handleDelete = (moto: Moto) => {
+    Alert.alert("Excluir", `Deseja excluir a moto ${moto.placa}?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setLoading(true);
+            await apiDelete(`/motos/${id}`);
+            Alert.alert("Sucesso", "Moto excluída.");
+            await fetchMotos();
+          } catch (err: any) {
+            Alert.alert("Erro", err.message || "Não foi possível excluir.");
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  };
 
   const renderItem = ({ item }: { item: Moto }) => (
     <TouchableOpacity
-      style={styles.motoCard}
+      style={styles.card}
       onPress={() => navigation.navigate("MotoDetails", { moto: item })}
     >
-      <Text style={styles.motoText}>
-        {item.placa} - {item.status}
-      </Text>
+      <Text style={styles.placa}>{item.placa}</Text>
+      <Text style={styles.sub}>{item.status}</Text>
+      <View style={styles.actions}>
+        <TouchableOpacity onPress={() => navigation.navigate("RegisterMoto", { moto: item })}>
+          <Text style={styles.actionText}>Editar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDelete(item)}>
+          <Text style={[styles.actionText, { color: "#ff4444" }]}>Excluir</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
       <View style={styles.header}>
-        <Text style={styles.bemVindo}>
-          Olá, {nomeUsuario.length > 0 ? nomeUsuario : "Visitante"}!
-        </Text>
-        <Text style={{ color: "#98FB98", fontSize: 16, marginBottom: 20 }}>
-          Bem-vindo ao sistema de controle de motos.
-        </Text>
-      </View>
-
-      {/* Card com lista de motos */}
-      <View style={styles.cardLista}>
-        <Text style={styles.cardTitle}>Motos Cadastradas</Text>
-        {motos.length === 0 ? (
-          <Text style={styles.semMotos}>Nenhuma moto cadastrada ainda.</Text>
-        ) : (
-          <FlatList
-            data={motos}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 8 }}
-            style={{ width: "100%" }}
-          />
-        )}
-
-        {/* Botão cadastrar moto */}
-      <View style={styles.centerContent}>
-        <TouchableOpacity
-          style={styles.cadMoto}
-          onPress={() => navigation.navigate("RegisterMoto")}
-        >
-          <Text style={styles.textButton}>Cadastrar Moto</Text>
+        <Text style={styles.title}>Olá, {user?.nome ?? "Usuário"}</Text>
+        <TouchableOpacity onPress={() => logout()}>
+          <Text style={{ color: "#f00" }}>Logout</Text>
         </TouchableOpacity>
       </View>
-      </View>
 
-      {/* Botão sair */}
-      <TouchableOpacity style={styles.botaoSair} onPress={handleLogout}>
-        <Text style={styles.textoSair}>Sair</Text>
+      <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate("RegisterMoto")}>
+        <Text style={{ color: "#fff" }}>+ Nova Moto</Text>
       </TouchableOpacity>
+
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList data={motos} keyExtractor={(i) => String(i.id)} renderItem={renderItem} />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#1C1C1C",
-  },
-  header: {
-    width: "100%",
-    marginBottom: 20,
-  },
-  bemVindo: {
-    fontSize: 27,
-    fontWeight: "bold",
-    textAlign: "left",
-    marginTop: 50,
-    color: "#fff",
-  },
-  centerContent: {
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  cadMoto: {
-    backgroundColor: "#21D445FF",
-    padding: 12,
-    borderRadius: 8,
-    width: "90%",
-    alignItems: "center",
-  },
-  textButton: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  cardLista: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: "120%",
-    maxHeight: 250,
-    width: "100%",
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#1C1C1C",
-  },
-  semMotos: {
-    color: "#555",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-  motoCard: {
-    backgroundColor: "#e6e6e6",
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  motoText: {
-    fontSize: 15,
-  },
-  botaoSair: {
-    backgroundColor: "#21D445FF",
-    padding: 12,
-    borderRadius: 8,
-    width: "90%",
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  textoSair: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-    textAlign: "center",
-  },
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 12 },
+  title: { fontSize: 18, fontWeight: "700" },
+  addBtn: { backgroundColor: "#21D445FF", padding: 12, borderRadius: 8, alignItems: "center", marginBottom: 12 },
+  card: { padding: 12, borderWidth: 1, borderColor: "#eee", borderRadius: 8, marginBottom: 10 },
+  placa: { fontSize: 16, fontWeight: "700" },
+  sub: { color: "#666" },
+  actions: { flexDirection: "row", justifyContent: "flex-end", marginTop: 8 },
+  actionText: { marginLeft: 12, color: "#21D445FF" },
 });
