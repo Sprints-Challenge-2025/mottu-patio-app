@@ -9,8 +9,9 @@ import {
   Alert,
 } from "react-native";
 import { Moto } from "../types";
-import { apiGet, apiDelete } from "../services/api";
+import { apiGetMotos, apiDeleteMoto } from "../services/api"; // Usar as novas funções
 import { useAuth } from "../contexts/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen({ navigation }: any) {
   const [motos, setMotos] = useState<Moto[]>([]);
@@ -20,14 +21,20 @@ export default function HomeScreen({ navigation }: any) {
   const fetchMotos = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiGet("/motos");
+      const token = await AsyncStorage.getItem("token"); // Obter o token
+      if (!token) {
+        Alert.alert("Erro de autenticação", "Token não encontrado. Faça login novamente.");
+        logout();
+        return;
+      }
+      const data = await apiGetMotos(token); // Passar o token
       setMotos(Array.isArray(data) ? data : []);
     } catch (err: any) {
       Alert.alert("Erro", err.message || "Não foi possível carregar motos.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     const unsub = navigation.addListener("focus", () => {
@@ -38,7 +45,7 @@ export default function HomeScreen({ navigation }: any) {
   }, [navigation, fetchMotos]);
 
   const handleDelete = (moto: Moto) => {
-    Alert.alert("Excluir", `Deseja excluir a moto ${moto.placa}?`, [
+    Alert.alert("Excluir", `Deseja excluir a moto ${moto.licensePlate}?`, [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
@@ -46,7 +53,13 @@ export default function HomeScreen({ navigation }: any) {
         onPress: async () => {
           try {
             setLoading(true);
-            await apiDelete(`/motos/${id}`);
+            const token = await AsyncStorage.getItem("token");
+            if (!token) {
+              Alert.alert("Erro de autenticação", "Token não encontrado. Faça login novamente.");
+              logout();
+              return;
+            }
+            await apiDeleteMoto(moto.id!, token); // Usar apiDeleteMoto e passar o token
             Alert.alert("Sucesso", "Moto excluída.");
             await fetchMotos();
           } catch (err: any) {
@@ -64,8 +77,8 @@ export default function HomeScreen({ navigation }: any) {
       style={styles.card}
       onPress={() => navigation.navigate("MotoDetails", { moto: item })}
     >
-      <Text style={styles.placa}>{item.placa}</Text>
-      <Text style={styles.sub}>{item.status}</Text>
+      <Text style={styles.placa}>{item.licensePlate}</Text> {/* Alterado de placa para licensePlate */}
+      <Text style={styles.sub}>{item.brand} - {item.model} ({item.year})</Text> {/* Exibir mais detalhes */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => navigation.navigate("RegisterMoto", { moto: item })}>
           <Text style={styles.actionText}>Editar</Text>
@@ -80,7 +93,7 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Olá, {user?.nome ?? "Usuário"}</Text>
+        <Text style={styles.title}>Olá, {user?.username ?? "Usuário"}</Text> {/* Alterado de nome para username */}
         <TouchableOpacity onPress={() => logout()}>
           <Text style={{ color: "#f00" }}>Logout</Text>
         </TouchableOpacity>
@@ -110,3 +123,4 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", justifyContent: "flex-end", marginTop: 8 },
   actionText: { marginLeft: 12, color: "#21D445FF" },
 });
+
