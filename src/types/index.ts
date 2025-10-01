@@ -1,9 +1,7 @@
 export interface Moto {
-  id?: string | number;
-  placa: string;
-  status: string;
-  servico?: string;
-  os?: string;
-  motor?: string;
-  [key: string]: any;
+  id?: number;
+  brand: string;
+  model: string;
+  year: number;
+  licensePlate: string;
 }
