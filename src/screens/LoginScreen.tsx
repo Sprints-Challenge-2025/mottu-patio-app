@@ -11,19 +11,13 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginScreen({ navigation }: any) {
-  const [cpf, setCpf] = useState("");
+  const [username, setUsername] = useState(""); // Alterado de cpf para username
   const [senha, setSenha] = useState("");
   const { login, loading } = useAuth();
 
-  const validarCPF = (cpfRaw: string) => {
-    const cleaned = cpfRaw.replace(/[^\d]+/g, "");
-    return cleaned.length === 11;
-  };
-
   const handleLogin = async () => {
-    const cpfLimpo = cpf.replace(/[^\d]+/g, "");
-    if (!validarCPF(cpfLimpo)) {
-      Alert.alert("CPF inválido", "Informe um CPF válido com 11 dígitos.");
+    if (!username) {
+      Alert.alert("Nome de usuário inválido", "Informe um nome de usuário.");
       return;
     }
     if (!senha || senha.length < 6) {
@@ -31,10 +25,10 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
     try {
-      await login(cpfLimpo, senha);
+      await login(username, senha); // Usar username e senha
       navigation.replace("Home");
     } catch (err: any) {
-      Alert.alert("Erro de autenticação", err.message || "CPF ou senha incorretos.");
+      Alert.alert("Erro de autenticação", err.message || "Nome de usuário ou senha incorretos.");
     }
   };
 
@@ -43,11 +37,10 @@ export default function LoginScreen({ navigation }: any) {
       <Text style={styles.title}>Entrar</Text>
 
       <TextInput
-        placeholder="CPF"
-        value={cpf}
-        onChangeText={setCpf}
+        placeholder="Nome de Usuário"
+        value={username}
+        onChangeText={setUsername}
         style={styles.input}
-        keyboardType="numeric"
       />
       <TextInput
         placeholder="Senha"
@@ -86,3 +79,4 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontWeight: "bold" },
   title: { fontSize: 22, fontWeight: "700", marginBottom: 16, textAlign: "center" },
 });
+
