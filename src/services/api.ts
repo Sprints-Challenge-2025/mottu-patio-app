@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api"; // Ajustado para HTTP e porta 5000 // Ajustar para a URL do seu backend .NET
+// Descubra seu IP local com "ipconfig" (Windows) ou "ifconfig" (Linux/Mac)
+const API_URL = "http://172.16.70.70:5000/api"; // troque pelo seu IP real
 
 interface FetchOptions extends RequestInit {
   token?: string | null;
@@ -18,51 +19,25 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || `Erro na API: ${response.status}`);
+    throw new Error(`Erro: ${response.status}`);
   }
 
   return response.json();
 }
 
-// -------- Métodos de Autenticação --------
-export async function registerUser(username: string, password: string) {
+// 🔹 Helpers específicos da API
+export async function registerUser(data: any) {
   return apiFetch("/Auth/register", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(data),
   });
 }
 
-export async function loginUser(username: string, password: string) {
+export async function loginUser(data: any) {
   return apiFetch("/Auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
-  });
-}
-
-// -------- Métodos CRUD para Motos --------
-
-export async function apiGetMotos(token?: string | null) {
-  return apiFetch("/Motos", { method: "GET", token });
-}
-
-export async function apiPostMoto(data: any, token?: string | null) {
-  return apiFetch("/Motos", {
-    method: "POST",
     body: JSON.stringify(data),
-    token,
   });
 }
 
-export async function apiPutMoto(id: number, data: any, token?: string | null) {
-  return apiFetch(`/Motos/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-    token,
-  });
-}
-
-export async function apiDeleteMoto(id: number, token?: string | null) {
-  return apiFetch(`/Motos/${id}`, { method: "DELETE", token });
-}
-
+export { apiFetch };
