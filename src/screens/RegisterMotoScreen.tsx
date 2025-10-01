@@ -8,52 +8,53 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { apiPost, apiPut, apiGet } from "../services/api";
+import { apiPostMoto, apiPutMoto } from "../services/api"; // Usar as novas funções
+import { Moto } from "../types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterMotoScreen({ route, navigation }: any) {
-  const motoParam = route.params?.moto;
-  const [placa, setPlaca] = useState(motoParam?.placa ?? "");
-  const [status, setStatus] = useState(motoParam?.status ?? "");
-  const [servico, setServico] = useState(motoParam?.servico ?? "");
-  const [os, setOs] = useState(motoParam?.os ?? "");
-  const [motor, setMotor] = useState(motoParam?.motor ?? "");
+  const motoParam: Moto | undefined = route.params?.moto;
+  const [brand, setBrand] = useState(motoParam?.brand ?? "");
+  const [model, setModel] = useState(motoParam?.model ?? "");
+  const [year, setYear] = useState(motoParam?.year ? String(motoParam.year) : ""); // Ano como string para TextInput
+  const [licensePlate, setLicensePlate] = useState(motoParam?.licensePlate ?? "");
   const [loading, setLoading] = useState(false);
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    if (motoParam && motoParam.id) {
-      // opcional: carregar versão atualizada da moto via API
-      (async () => {
-        try {
-          setLoading(true);
-          const fresh = await apiGet(`/motos/${motoParam.id}`);
-          setPlaca(fresh.placa || placa);
-          setStatus(fresh.status || status);
-          setServico(fresh.servico || servico);
-          setOs(fresh.os || os);
-          setMotor(fresh.motor || motor);
-        } catch (e) {
-          // ignorar
-        } finally {
-          setLoading(false);
-        }
-      })();
-    }
-  }, []);
-
-  const validarPlaca = (p: string) => p.trim().length >= 4;
+  // Não precisamos de useEffect para carregar a moto, pois ela já vem via params
 
   const handleSalvar = async () => {
-    if (!validarPlaca(placa) || !status) {
-      Alert.alert("Validação", "Preencha a placa (mín. 4 chars) e o status.");
+    if (!brand || !model || !year || !licensePlate) {
+      Alert.alert("Validação", "Preencha todos os campos: Marca, Modelo, Ano e Placa.");
       return;
     }
+    if (isNaN(Number(year)) || Number(year) < 1900 || Number(year) > new Date().getFullYear() + 1) {
+      Alert.alert("Validação", "O ano deve ser um número válido entre 1900 e o ano atual + 1.");
+      return;
+    }
+
     setLoading(true);
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Erro de autenticação", "Token não encontrado. Faça login novamente.");
+        logout();
+        return;
+      }
+
+      const motoData: Moto = {
+        brand,
+        model,
+        year: Number(year),
+        licensePlate,
+      };
+
       if (motoParam && motoParam.id) {
-        await apiPut(`/motos/${motoParam.id}`, { placa, status, servico, os, motor });
+        await apiPutMoto(motoParam.id, motoData, token);
         Alert.alert("Sucesso", "Moto atualizada.");
       } else {
-        await apiPost("/motos", { placa, status, servico, os, motor });
+        await apiPostMoto(motoData, token);
         Alert.alert("Sucesso", "Moto cadastrada.");
       }
       navigation.goBack();
@@ -68,11 +69,10 @@ export default function RegisterMotoScreen({ route, navigation }: any) {
     <View style={styles.container}>
       <Text style={styles.title}>{motoParam ? "Editar Moto" : "Cadastrar Nova Moto"}</Text>
 
-      <TextInput placeholder="Placa" value={placa} onChangeText={setPlaca} style={styles.input} />
-      <TextInput placeholder="Status" value={status} onChangeText={setStatus} style={styles.input} />
-      <TextInput placeholder="Serviço" value={servico} onChangeText={setServico} style={styles.input} />
-      <TextInput placeholder="OS" value={os} onChangeText={setOs} style={styles.input} />
-      <TextInput placeholder="Motor" value={motor} onChangeText={setMotor} style={styles.input} />
+      <TextInput placeholder="Marca" value={brand} onChangeText={setBrand} style={styles.input} />
+      <TextInput placeholder="Modelo" value={model} onChangeText={setModel} style={styles.input} />
+      <TextInput placeholder="Ano" value={year} onChangeText={setYear} style={styles.input} keyboardType="numeric" />
+      <TextInput placeholder="Placa" value={licensePlate} onChangeText={setLicensePlate} style={styles.input} />
 
       <TouchableOpacity onPress={handleSalvar} style={styles.button} disabled={loading}>
         {loading ? <ActivityIndicator /> : <Text style={styles.buttonText}>Salvar</Text>}
@@ -88,3 +88,4 @@ const styles = StyleSheet.create({
   button: { backgroundColor: "#21D445FF", padding: 12, borderRadius: 8, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "bold" },
 });
+
