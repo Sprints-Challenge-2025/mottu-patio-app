@@ -1,19 +1,18 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { apiPost } from "../services/api";
+import { loginUser, registerUser } from "../services/api"; // Importar as novas funções
 import { Alert } from "react-native";
 
 interface Usuario {
-  id?: string;
-  nome: string;
-  cpf: string;
+  id?: number; // Alterado para number para corresponder ao backend .NET
+  username: string; // Alterado de 'nome' para 'username'
 }
 
 interface AuthContextType {
   user: Usuario | null;
   loading: boolean;
-  login: (cpf: string, senha: string) => Promise<void>;
-  register: (nome: string, cpf: string, senha: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>; // Alterado para username e password
+  register: (username: string, password: string) => Promise<void>; // Alterado para username e password
   logout: () => Promise<void>;
   restoreToken: () => Promise<void>;
 }
@@ -32,9 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
-      const usuarioStr = await AsyncStorage.getItem("usuario");
-      if (token && usuarioStr) {
-        setUser(JSON.parse(usuarioStr));
+      const username = await AsyncStorage.getItem("username"); // Armazenar username em vez de usuario completo
+      if (token && username) {
+        setUser({ username }); // Criar objeto Usuario com username
       }
     } catch (err) {
       console.error("Erro restaurando token:", err);
@@ -43,41 +42,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const login = async (cpf: string, senha: string) => {
+  const login = async (username: string, password: string) => {
     setLoading(true);
     try {
-      const payload = { cpf, senha };
-      // espera que o backend retorne { token: '...', usuario: { id, nome, cpf } }
-      const data = await apiPost("/auth/login", payload);
+      const data = await loginUser(username, password); // Usar a nova função loginUser
       if (!data || !data.token) throw new Error("Resposta inválida do servidor.");
       await AsyncStorage.setItem("token", data.token);
-      await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
-      setUser(data.usuario);
+      await AsyncStorage.setItem("username", username); // Armazenar apenas o username
+      setUser({ username }); // Definir o usuário com o username
     } catch (err: any) {
       console.error("Login erro:", err);
+      Alert.alert("Erro", err.message || "Erro ao autenticar.");
       throw new Error(err.message || "Erro ao autenticar.");
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (nome: string, cpf: string, senha: string) => {
+  const register = async (username: string, password: string) => {
     setLoading(true);
     try {
-      // espera que /users crie o usuário e retorne o usuário criado
-      const data = await apiPost("/users", { nome, cpf, senha });
-      // opcionalmente fazer login automático se backend retornar token:
-      if (data.token) {
-        await AsyncStorage.setItem("token", data.token);
-        await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
-        setUser(data.usuario);
-      } else {
-        // salvar usuário localmente para experiência offline mínima
-        await AsyncStorage.setItem("usuario", JSON.stringify(data));
-        setUser(data);
-      }
+      await registerUser(username, password); // Usar a nova função registerUser
+      Alert.alert("Sucesso", "Usuário registrado com sucesso! Faça login para continuar.");
+      // Não faz login automático, o usuário deve fazer login após o registro
     } catch (err: any) {
       console.error("Register erro:", err);
+      Alert.alert("Erro", err.message || "Erro ao registrar.");
       throw new Error(err.message || "Erro ao registrar.");
     } finally {
       setLoading(false);
@@ -87,14 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     setLoading(true);
     try {
-      // tentar avisar backend (opcional). Ignorar falhas.
-      try {
-        await apiPost("/auth/logout", {});
-      } catch (e) {
-        // sem problemas
-      }
       await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("usuario");
+      await AsyncStorage.removeItem("username");
       setUser(null);
     } catch (err) {
       Alert.alert("Erro", "Não foi possível deslogar corretamente.");
