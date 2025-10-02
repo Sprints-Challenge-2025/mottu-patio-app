@@ -4,7 +4,7 @@ Aplicativo mobile desenvolvido com **React Native (Expo)** e **TypeScript** para
 
 ### 🚀 Equipe
 - Gabriela Gomes - rm556941
-- Emily Maria - rm556941
+- Emily Maria - rm554882
 - Felipe de Santana - rm558916
 
 ### 📱 Funcionalidades
