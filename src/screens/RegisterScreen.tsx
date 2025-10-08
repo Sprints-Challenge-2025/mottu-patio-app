@@ -38,7 +38,7 @@ export default function RegisterScreen({ navigation }: any) {
     }
 
     try {
-      await register(username, password);
+      await register({ username, password });
       
       navigation.replace("Login"); 
     } catch (err: any) {
