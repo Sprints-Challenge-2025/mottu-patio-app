@@ -51,7 +51,7 @@ export default function RegisterMotoScreen({ route, navigation }: any) {
       };
 
       if (motoParam && motoParam.id) {
-        await updateMoto(motoParam.id, motoData, token);
+        await updateMoto(String(motoParam.id), motoData, token);
         Alert.alert("Sucesso", "Moto atualizada.");
       } else {
         await createMoto(motoData, token);
