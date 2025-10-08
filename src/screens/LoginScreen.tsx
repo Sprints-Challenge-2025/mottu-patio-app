@@ -12,7 +12,8 @@ import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginScreen({ navigation }: any) {
   const [username, setUsername] = useState(""); 
-  const { login, loading } = useAuth();
+  const [senha, setSenha] = useState("");
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     if (!username) {
@@ -49,8 +50,8 @@ export default function LoginScreen({ navigation }: any) {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        {loading ? <ActivityIndicator /> : <Text style={styles.buttonText}>Entrar</Text>}
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Register")} style={{ marginTop: 12 }}>

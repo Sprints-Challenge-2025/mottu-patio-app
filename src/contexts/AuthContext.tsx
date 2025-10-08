@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 🔹 Registrar usuário
+  
   const register = async (userData: { username: string; password: string }) => {
     setLoading(true);
     try {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 🔹 Logout
+ 
   const logout = async () => {
     setUser(null);
     await AsyncStorage.removeItem("user");

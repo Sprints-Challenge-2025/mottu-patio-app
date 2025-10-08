@@ -13,8 +13,8 @@ import { useAuth } from "../contexts/AuthContext";
 export default function RegisterScreen({ navigation }: any) {
   const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState(""); 
-  const [confirmPassword, setConfirmPassword] = useState(""); 
-  const { register, loading } = useAuth();
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { register } = useAuth();
 
   const validarSenhaForte = (s: string) => {
     return s.length >= 6; 
@@ -60,8 +60,8 @@ export default function RegisterScreen({ navigation }: any) {
         secureTextEntry
       />
 
-      <TouchableOpacity onPress={handleRegister} style={styles.button} disabled={loading}>
-        {loading ? <ActivityIndicator /> : <Text style={styles.buttonText}>Cadastrar</Text>}
+      <TouchableOpacity onPress={handleRegister} style={styles.button}>
+        <Text style={styles.buttonText}>Cadastrar</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")} style={{ marginTop: 12 }}>

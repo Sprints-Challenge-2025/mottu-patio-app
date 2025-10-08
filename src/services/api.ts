@@ -29,6 +29,13 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
 
 export { apiFetch };
 
+export async function registerUser(data: { username: string; password: string }) {
+  return apiFetch("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getMotos(token: string) {
   return apiFetch("/motos", { token });
 }
