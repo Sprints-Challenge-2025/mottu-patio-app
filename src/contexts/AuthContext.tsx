@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginUser, registerUser } from "../services/api";
+import { apiFetch, registerUser } from "../services/api";
 import { Alert } from "react-native";
+
+
 
 interface Usuario {
   id?: number;
@@ -11,6 +13,7 @@ interface Usuario {
 
 interface AuthContextType {
   user: Usuario | null;
+  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (userData: { username: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -20,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -29,26 +33,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, []);
 
-  // 🔹 Registrar usuário
-  const register = async (userData: { username: string; password: string }) => {
+
+
+  // 🔹 Login do usuário (implementação mock para integração)
+  const login = async (username: string, password: string) => {
+    setLoading(true);
     try {
-      await registerUser(userData);
-      Alert.alert("Sucesso", "Usuário registrado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao registrar:", error);
-      Alert.alert("Erro", "Não foi possível registrar o usuário.");
+      // Simular uma chamada de API de login
+      const response = await apiFetch("/auth/login", { // Assumindo um endpoint de login no backend Java
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
+
+      // Assumindo que a resposta contém um token e informações do usuário
+      const data = { username: response.username, token: response.token };
+      setUser(data);
+      await AsyncStorage.setItem("user", JSON.stringify(data));
+      Alert.alert("Sucesso", "Login realizado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao logar:", error);
+      Alert.alert("Erro", error.message || "Credenciais inválidas.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 🔹 Login do usuário
-  const login = async (username: string, password: string) => {
+  // 🔹 Registrar usuário
+  const register = async (userData: { username: string; password: string }) => {
+    setLoading(true);
     try {
-      const data = await loginUser({ username, password });
-      setUser(data);
-      await AsyncStorage.setItem("user", JSON.stringify(data));
-    } catch (error) {
-      console.error("Erro ao logar:", error);
-      Alert.alert("Erro", "Credenciais inválidas.");
+      await registerUser(userData);
+      Alert.alert("Sucesso", "Usuário registrado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao registrar:", error);
+      Alert.alert("Erro", error.message || "Não foi possível registrar o usuário.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
