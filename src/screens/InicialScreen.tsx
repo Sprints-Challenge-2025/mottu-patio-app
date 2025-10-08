@@ -9,17 +9,19 @@ import {
   StatusBar,
 } from "react-native";
 
-export default function HomeScreen({ navigation }: any) {
+const FULL_WORD = "TECNOLOGIA";
+const TYPING_INTERVAL = 100;
+
+export default function InicialScreen({ navigation }: { navigation: any }) {
   const [typedWord, setTypedWord] = useState("");
-  const fullWord = "TECNOLOGIA";
 
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
-      setTypedWord(fullWord.slice(0, i + 1));
+      setTypedWord(FULL_WORD.slice(0, i + 1));
       i++;
-      if (i === fullWord.length) clearInterval(interval);
-    }, 100);
+      if (i === FULL_WORD.length) clearInterval(interval);
+    }, TYPING_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
@@ -40,13 +42,23 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={styles.title}>
             VIVA MAIS <Text style={styles.typing}>{typedWord}</Text>
           </Text>
-          <Text style={styles.subtitle}>Transforme sua rotina com <Text style={{fontWeight: "bold"}}>inovação</Text></Text>
+          <Text style={styles.subtitle}>
+            Transforme sua rotina com <Text style={styles.bold}>inovação</Text>
+          </Text>
 
-          <TouchableOpacity style={styles.greenButton} onPress={() => navigation.navigate("Register")}>
+          <TouchableOpacity
+            style={styles.greenButton}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("Register")}
+          >
             <Text style={styles.greenButtonText}>SOU NOVO AQUI</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("Login")}>
+          <TouchableOpacity
+            style={styles.blackButton}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("Login")}
+          >
             <Text style={styles.blackButtonText}>JÁ SOU CLIENTE</Text>
           </TouchableOpacity>
         </View>
@@ -88,6 +100,7 @@ const styles = StyleSheet.create({
   },
   typing: {
     color: "#32CD32",
+    fontWeight: "bold",
   },
   subtitle: {
     color: "#ccc",
@@ -96,6 +109,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginBottom: 30,
   },
+  bold: {
+    fontWeight: "bold",
+    color: "#fff",
+  },
   greenButton: {
     backgroundColor: "#29b12c",
     paddingVertical: 14,
@@ -103,6 +120,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     width: "100%",
     marginBottom: 10,
+    elevation: 2,
   },
   greenButtonText: {
     color: "#fff",
@@ -118,6 +136,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#fff",
     width: "100%",
+    elevation: 2,
   },
   blackButtonText: {
     color: "#fff",
