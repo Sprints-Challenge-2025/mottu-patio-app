@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Moto } from "../types";
-import { getMotos, deleteMoto } from "../services/api"; // Usar as novas funções
+import { getMotos, deleteMoto } from "../services/api"; 
 import { useAuth } from "../contexts/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -21,13 +21,13 @@ export default function HomeScreen({ navigation }: any) {
   const fetchMotos = useCallback(async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("token"); // Obter o token
+      const token = await AsyncStorage.getItem("token"); 
       if (!token) {
         Alert.alert("Erro de autenticação", "Token não encontrado. Faça login novamente.");
         logout();
         return;
       }
-      const data = await getMotos(token); // Passar o token
+      const data = await getMotos(token); 
       setMotos(Array.isArray(data) ? data : []);
     } catch (err: any) {
       Alert.alert("Erro", err.message || "Não foi possível carregar motos.");
@@ -59,7 +59,7 @@ export default function HomeScreen({ navigation }: any) {
               logout();
               return;
             }
-            await deleteMoto(motos.id!, token); // Usar apiDeleteMoto e passar o token
+            await deleteMoto(motos.id!, token); 
             Alert.alert("Sucesso", "Moto excluída.");
             await fetchMotos();
           } catch (err: any) {
@@ -77,8 +77,8 @@ export default function HomeScreen({ navigation }: any) {
       style={styles.card}
       onPress={() => navigation.navigate("MotoDetails", { moto: item })}
     >
-      <Text style={styles.placa}>{item.licensePlate}</Text> {/* Alterado de placa para licensePlate */}
-      <Text style={styles.sub}>{item.brand} - {item.model} ({item.year})</Text> {/* Exibir mais detalhes */}
+      <Text style={styles.placa}>{item.licensePlate}</Text> 
+      <Text style={styles.sub}>{item.brand} - {item.model} ({item.year})</Text> 
       <View style={styles.actions}>
         <TouchableOpacity onPress={() => navigation.navigate("RegisterMoto", { moto: item })}>
           <Text style={styles.actionText}>Editar</Text>
@@ -93,7 +93,7 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Olá, {user?.username ?? "Usuário"}</Text> {/* Alterado de nome para username */}
+        <Text style={styles.title}>Olá, {user?.username ?? "Usuário"}</Text> 
         <TouchableOpacity onPress={() => logout()}>
           <Text style={{ color: "#f00" }}>Logout</Text>
         </TouchableOpacity>

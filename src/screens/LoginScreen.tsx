@@ -11,8 +11,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginScreen({ navigation }: any) {
-  const [username, setUsername] = useState(""); // Alterado de cpf para username
-  const [senha, setSenha] = useState("");
+  const [username, setUsername] = useState(""); 
   const { login, loading } = useAuth();
 
   const handleLogin = async () => {
@@ -25,7 +24,7 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
     try {
-      await login(username, senha); // Usar username e senha
+      await login(username, senha); 
       navigation.replace("Home");
     } catch (err: any) {
       Alert.alert("Erro de autenticação", err.message || "Nome de usuário ou senha incorretos.");

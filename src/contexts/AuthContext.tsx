@@ -35,17 +35,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
 
-  // 🔹 Login do usuário (implementação mock para integração)
+  
   const login = async (username: string, password: string) => {
     setLoading(true);
     try {
-      // Simular uma chamada de API de login
-      const response = await apiFetch("/auth/login", { // Assumindo um endpoint de login no backend Java
+      
+      const response = await apiFetch("/auth/login", { 
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
 
-      // Assumindo que a resposta contém um token e informações do usuário
+      
       const data = { username: response.username, token: response.token };
       setUser(data);
       await AsyncStorage.setItem("user", JSON.stringify(data));

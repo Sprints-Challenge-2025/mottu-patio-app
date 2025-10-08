@@ -8,8 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { createMoto, updateMoto } from "../services/api"; // Usar as novas funções
-import { Moto } from "../types";
+import { createMoto, updateMoto } from "../services/api"; 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -17,13 +16,12 @@ export default function RegisterMotoScreen({ route, navigation }: any) {
   const motoParam: Moto | undefined = route.params?.moto;
   const [brand, setBrand] = useState(motoParam?.brand ?? "");
   const [model, setModel] = useState(motoParam?.model ?? "");
-  const [year, setYear] = useState(motoParam?.year ? String(motoParam.year) : ""); // Ano como string para TextInput
+  const [year, setYear] = useState(motoParam?.year ? String(motoParam.year) : "");
   const [licensePlate, setLicensePlate] = useState(motoParam?.licensePlate ?? "");
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
-  // Não precisamos de useEffect para carregar a moto, pois ela já vem via params
-
+  
   const handleSalvar = async () => {
     if (!brand || !model || !year || !licensePlate) {
       Alert.alert("Validação", "Preencha todos os campos: Marca, Modelo, Ano e Placa.");

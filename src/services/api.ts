@@ -1,5 +1,5 @@
-// Descubra seu IP local com "ipconfig" (Windows) ou "ifconfig" (Linux/Mac)
-const API_URL = "http://localhost:8080"; // URL do backend Java
+
+const API_URL = "http://localhost:8080"; 
 
 interface FetchOptions extends RequestInit {
   token?: string | null;
@@ -25,7 +25,6 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
   return response.json();
 }
 
-// 🔹 Helpers específicos da API
 
 
 export { apiFetch };

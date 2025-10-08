@@ -11,13 +11,13 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterScreen({ navigation }: any) {
-  const [username, setUsername] = useState(""); // Alterado de nome para username
-  const [password, setPassword] = useState(""); // Alterado de senha para password
-  const [confirmPassword, setConfirmPassword] = useState(""); // Alterado de confirmarSenha para confirmPassword
+  const [username, setUsername] = useState(""); 
+  const [password, setPassword] = useState(""); 
+  const [confirmPassword, setConfirmPassword] = useState(""); 
   const { register, loading } = useAuth();
 
   const validarSenhaForte = (s: string) => {
-    return s.length >= 6; // Simplificado para o exemplo, o backend já valida a força
+    return s.length >= 6; 
   };
 
   const handleRegister = async () => {
@@ -39,7 +39,7 @@ export default function RegisterScreen({ navigation }: any) {
 
     try {
       await register(username, password);
-      // Após o registro, o usuário deve ser redirecionado para a tela de login
+      
       navigation.replace("Login"); 
     } catch (err: any) {
       Alert.alert("Erro", err.message || "Não foi possível cadastrar.");
