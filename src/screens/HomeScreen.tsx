@@ -59,7 +59,7 @@ export default function HomeScreen({ navigation }: any) {
               logout();
               return;
             }
-            await deleteMoto(motos.id!, token); 
+            await deleteMoto(moto.id!.toString(), token); 
             Alert.alert("Sucesso", "Moto excluída.");
             await fetchMotos();
           } catch (err: any) {
