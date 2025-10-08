@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { apiGetMotos } from "../services/api"; // Usar a nova função
+import { getMotos } from "../services/api"; // Usar a nova função
 import { Moto } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../contexts/AuthContext";
@@ -23,7 +23,7 @@ export default function MotoDetailsScreen({ route, navigation }: any) {
             return;
           }
           // apiGetMotos retorna uma lista, precisamos encontrar a moto específica
-          const allMotos: Moto[] = await apiGetMotos(token);
+          const allMotos: Moto[] = await getMotos(token);
           const freshMoto = allMotos.find(m => m.id === motoParam.id);
           if (freshMoto) {
             setMoto(freshMoto);
