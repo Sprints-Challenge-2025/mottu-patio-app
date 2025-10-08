@@ -8,24 +8,36 @@ import MotoDetailsScreen from "../screens/MotoDetailScreen";
 import RegisterMotoScreen from "../screens/RegisterMotoScreen";
 import InicialScreen from "../screens/InicialScreen";
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Inicial: undefined;
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
+  RegisterMoto: undefined;
+  MotoDetails: { motoId: string } | undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const screenOptions = {
+  headerTitle: "MottuSense",
+  headerTintColor: "#21D445FF",
+  headerTitleStyle: { fontWeight: 'bold' as const, fontSize: 20 },
+};
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator
-      initialRouteName="Inicial"
-      screenOptions={{
-        headerTitle: "MottuSense",
-        headerTintColor: "#21D445FF",
-        headerTitleStyle: { fontWeight: "bold", fontSize: 20 },
-      }}
-    >
-      <Stack.Screen name="Inicial" component={InicialScreen} options={{ headerShown: false }}/>
+    <Stack.Navigator initialRouteName="Inicial" screenOptions={screenOptions}>
+      <Stack.Screen name="Inicial" component={InicialScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="RegisterMoto" component={RegisterMotoScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="MotoDetails" component={MotoDetailsScreen} options={{title: "Detalhes da Moto", headerShown: false }}/>
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="RegisterMoto" component={RegisterMotoScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="MotoDetails"
+        component={MotoDetailsScreen}
+        options={{ title: "Detalhes da Moto", headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
