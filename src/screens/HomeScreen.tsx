@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Moto } from "../types";
-import { apiGetMotos, apiDeleteMoto } from "../services/api"; // Usar as novas funções
+import { getMotos, deleteMoto } from "../services/api"; // Usar as novas funções
 import { useAuth } from "../contexts/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation }: any) {
         logout();
         return;
       }
-      const data = await apiGetMotos(token); // Passar o token
+      const data = await getMotos(token); // Passar o token
       setMotos(Array.isArray(data) ? data : []);
     } catch (err: any) {
       Alert.alert("Erro", err.message || "Não foi possível carregar motos.");
@@ -59,7 +59,7 @@ export default function HomeScreen({ navigation }: any) {
               logout();
               return;
             }
-            await apiDeleteMoto(moto.id!, token); // Usar apiDeleteMoto e passar o token
+            await deleteMoto(motos.id!, token); // Usar apiDeleteMoto e passar o token
             Alert.alert("Sucesso", "Moto excluída.");
             await fetchMotos();
           } catch (err: any) {
