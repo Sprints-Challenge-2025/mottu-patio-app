@@ -1,5 +1,5 @@
 // Descubra seu IP local com "ipconfig" (Windows) ou "ifconfig" (Linux/Mac)
-const API_URL = "http://172.16.70.70:5000/api"; // troque pelo seu IP real
+const API_URL = "http://localhost:8080"; // URL do backend Java
 
 interface FetchOptions extends RequestInit {
   token?: string | null;
@@ -26,18 +26,61 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
 }
 
 // 🔹 Helpers específicos da API
-export async function registerUser(data: any) {
-  return apiFetch("/Auth/register", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
 
-export async function loginUser(data: any) {
-  return apiFetch("/Auth/login", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
 
 export { apiFetch };
+
+export async function getMotos(token: string) {
+  return apiFetch("/motos", { token });
+}
+
+export async function getMotoById(id: string, token: string) {
+  return apiFetch(`/motos/${id}`, { token });
+}
+
+export async function createMoto(data: any, token: string) {
+  return apiFetch("/motos", {
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function updateMoto(id: string, data: any, token: string) {
+  return apiFetch(`/motos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function deleteMoto(id: string, token: string) {
+  return apiFetch(`/motos/${id}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
+export async function getFotos(token: string) {
+  return apiFetch("/fotos", { token });
+}
+
+export async function getFotoById(id: string, token: string) {
+  return apiFetch(`/fotos/${id}`, { token });
+}
+
+export async function createFoto(data: any, token: string) {
+  return apiFetch("/fotos", {
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export async function deleteFoto(id: string, token: string) {
+  return apiFetch(`/fotos/${id}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
