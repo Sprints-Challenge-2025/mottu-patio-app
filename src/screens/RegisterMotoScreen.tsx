@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { apiPostMoto, apiPutMoto } from "../services/api"; // Usar as novas funções
+import { createMoto, updateMoto } from "../services/api"; // Usar as novas funções
 import { Moto } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../contexts/AuthContext";
@@ -51,10 +51,10 @@ export default function RegisterMotoScreen({ route, navigation }: any) {
       };
 
       if (motoParam && motoParam.id) {
-        await apiPutMoto(motoParam.id, motoData, token);
+        await updateMoto(motoParam.id, motoData, token);
         Alert.alert("Sucesso", "Moto atualizada.");
       } else {
-        await apiPostMoto(motoData, token);
+        await createMoto(motoData, token);
         Alert.alert("Sucesso", "Moto cadastrada.");
       }
       navigation.goBack();
